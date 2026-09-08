@@ -9672,13 +9672,22 @@ img { max-width: 100%; height: auto; }
     if (!toolbar || this._selectionBoundToolbar === toolbar) return;
     this._selectionBoundToolbar = toolbar;
     toolbar.addEventListener('mousedown', (event) => {
-      // 下拉选择框必须保留默认交互；其余按钮则阻止获得焦点。
-      if (event.target.closest('select')) return;
+      // 下拉选择框必须保留默认交互，但也要先保存选区；否则 change
+      // 事件发生时浏览器已将焦点移到下拉框，字体/字号/标题样式会失效。
+      if (event.target.closest('select')) {
+        this._saveEditorSelection();
+        return;
+      }
       const button = event.target.closest('button');
       if (!button) return;
       this._saveEditorSelection();
       event.preventDefault();
     });
+    const menubar = document.querySelector('.gdocs-menubar');
+    if (menubar && this._selectionBoundMenubar !== menubar) {
+      this._selectionBoundMenubar = menubar;
+      menubar.addEventListener('mousedown', () => this._saveEditorSelection());
+    }
     // 在编辑器操作过程中持续更新选区（键盘、鼠标和触屏选取）。
     ['keyup', 'mouseup', 'focus', 'input'].forEach(type => {
       editor.addEventListener(type, () => this._saveEditorSelection());
