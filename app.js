@@ -6544,7 +6544,14 @@ img { max-width: 100%; height: auto; }
 
   // 切换文档属性面板
   toggleDocProperties() {
-    this.notify('文档属性面板开发中，可点击顶部"返回"按钮到管理后台编辑', 'info');
+    const panel = document.getElementById('gdocsPropertiesPanel');
+    if (!panel) {
+      this.notify('当前不在文档编辑页面', 'warning');
+      return;
+    }
+    const opening = panel.style.display === 'none' || !panel.style.display;
+    panel.style.display = opening ? 'flex' : 'none';
+    if (opening) document.getElementById('editDocTitle')?.focus();
   },
 
   // 通用 in-app 输入对话框（替换浏览器原生 prompt）
@@ -8863,7 +8870,7 @@ img { max-width: 100%; height: auto; }
       <div class="gdocs-properties-panel" id="gdocsPropertiesPanel" style="display:none;">
         <div class="gdocs-panel-header">
           <span>文档属性</span>
-          <button class="gdocs-icon-btn" onclick="App.toggleGdocsMenu('properties')">✕</button>
+          <button class="gdocs-icon-btn" onclick="App.toggleDocProperties()" title="关闭文档属性">✕</button>
         </div>
         <div class="gdocs-panel-body">
           <div class="gdocs-panel-field">
