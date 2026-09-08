@@ -1179,7 +1179,8 @@ const DataStore = {
     if (!query || query.trim() === '') return { products: [], docs: [], videos: [] };
     const q = query.toLowerCase().trim();
     return {
-      products: products.filter(p =>
+      // 与产品列表保持一致，数量字段由实际关联的内容实时计算。
+      products: DataStore.getProducts().filter(p =>
         p.name.toLowerCase().includes(q) ||
         p.description.toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q)

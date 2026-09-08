@@ -1014,6 +1014,9 @@ const App = {
         this._pendingAdminTab = null;
         this.navigate('admin', { adminTab: tab });
       } else {
+        // 未登录访问后台时，路由已切到 admin 但尚未写入地址栏。
+        // 登录成功后同步，保证刷新及浏览器历史都回到正确页面。
+        this._syncHash();
         this.render();
       }
       return true;
