@@ -6549,9 +6549,10 @@ img { max-width: 100%; height: auto; }
       this.notify('当前不在文档编辑页面', 'warning');
       return;
     }
-    const opening = panel.style.display === 'none' || !panel.style.display;
-    panel.style.display = opening ? 'flex' : 'none';
-    if (opening) document.getElementById('editDocTitle')?.focus();
+    // 属性栏是编辑工作区的一部分，菜单入口仅用于定位到它，不再隐藏。
+    panel.style.display = 'flex';
+    panel.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('editDocTitle')?.focus();
   },
 
   // 通用 in-app 输入对话框（替换浏览器原生 prompt）
@@ -8678,7 +8679,7 @@ img { max-width: 100%; height: auto; }
     const app = document.getElementById('app');
     app.innerHTML = `
       ${this.renderNavbar('admin')}
-      <div class="gdocs-editor">
+      <div class="gdocs-editor gdocs-editor-with-properties">
         <!-- Google Docs 风格：文档标题栏（替代旧的"编辑文档"大标题） -->
         <div class="gdocs-doc-header">
           <div class="gdocs-doc-header-left">
@@ -8866,14 +8867,14 @@ img { max-width: 100%; height: auto; }
         <button class="gdocs-icon-btn" onclick="App.showTableProperties()" title="表格属性">⚙ 属性</button>
       </div>
 
-      <!-- 文档属性侧边面板（默认隐藏，菜单里"文件 > 文档属性"打开） -->
-      <div class="gdocs-properties-panel" id="gdocsPropertiesPanel" style="display:none;">
+      <!-- 常驻文档属性栏：与编辑器使用同一数据模型 -->
+      <aside class="gdocs-properties-panel" id="gdocsPropertiesPanel" aria-label="文档属性">
         <div class="gdocs-panel-header">
           <div class="gdocs-panel-title-group">
             <span class="gdocs-panel-kicker">DOCUMENT SETTINGS</span>
             <span>文档属性</span>
           </div>
-          <button class="gdocs-icon-btn" onclick="App.toggleDocProperties()" title="关闭文档属性">✕</button>
+          <span class="gdocs-panel-sync">● 编辑中</span>
         </div>
         <div class="gdocs-panel-body">
           <div class="gdocs-property-summary">
@@ -8959,10 +8960,9 @@ img { max-width: 100%; height: auto; }
           </div>
         </div>
         <div class="gdocs-panel-footer">
-          <button class="gdocs-panel-cancel" onclick="App.toggleDocProperties()">关闭</button>
           <button class="gdocs-panel-save" onclick="App.saveDoc()">保存属性</button>
         </div>
-      </div>
+      </aside>
     `;
 
     // 绑定编辑器事件

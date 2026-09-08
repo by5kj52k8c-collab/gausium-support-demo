@@ -8975,6 +8975,14 @@ body {
   flex-direction: column;
   animation: gdocsPanelIn 0.2s ease-out;
 }
+.gdocs-editor-with-properties > .gdocs-doc-header,
+.gdocs-editor-with-properties > .gdocs-page-tabs,
+.gdocs-editor-with-properties > .gdocs-menubar,
+.gdocs-editor-with-properties > .gdocs-toolbar,
+.gdocs-editor-with-properties > .gdocs-ruler-wrap,
+.gdocs-editor-with-properties > .gdocs-doc-area,
+.gdocs-editor-with-properties > .gdocs-statusbar { margin-right: 372px; }
+.gdocs-panel-sync { color:#1a73e8; font-size:12px; font-weight:600; }
 @keyframes gdocsPanelIn {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
@@ -9047,6 +9055,26 @@ body {
 .gdocs-panel-cancel { color:#4b5563; background:#fff; border:1px solid #d7e0eb; }
 .gdocs-panel-save { color:#fff; background:#1a73e8; border:1px solid #1a73e8; box-shadow:0 2px 5px rgba(26,115,232,.24); }
 .gdocs-panel-save:hover { background:#155ec1; }
+@media (max-width: 1100px) {
+  .gdocs-editor-with-properties > .gdocs-doc-header,
+  .gdocs-editor-with-properties > .gdocs-page-tabs,
+  .gdocs-editor-with-properties > .gdocs-menubar,
+  .gdocs-editor-with-properties > .gdocs-toolbar,
+  .gdocs-editor-with-properties > .gdocs-ruler-wrap,
+  .gdocs-editor-with-properties > .gdocs-doc-area,
+  .gdocs-editor-with-properties > .gdocs-statusbar { margin-right: 320px; }
+  .gdocs-properties-panel { width:320px; }
+}
+@media (max-width: 760px) {
+  .gdocs-editor-with-properties > .gdocs-doc-header,
+  .gdocs-editor-with-properties > .gdocs-page-tabs,
+  .gdocs-editor-with-properties > .gdocs-menubar,
+  .gdocs-editor-with-properties > .gdocs-toolbar,
+  .gdocs-editor-with-properties > .gdocs-ruler-wrap,
+  .gdocs-editor-with-properties > .gdocs-doc-area,
+  .gdocs-editor-with-properties > .gdocs-statusbar { margin-right: 0; }
+  .gdocs-properties-panel { width:min(372px, 92vw); }
+}
 
 /* 表格工具栏（Google Docs 风格浮层） */
 .gdocs-table-toolbar {
