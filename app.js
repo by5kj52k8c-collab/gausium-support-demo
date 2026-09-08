@@ -8954,6 +8954,9 @@ img { max-width: 100%; height: auto; }
       // 绑定菜单外部点击关闭 + 触发元素追踪
       this._setupGdocsMenuOutsideClick();
       this._bindMenuTriggers();
+      // 工具栏按钮会在 click 前夺走编辑器焦点。先在 mousedown 阶段
+      // 记录选区，才能让格式和插入命令始终作用在用户原来的光标位置。
+      this._bindEditorToolbarSelection(editor);
       // 初始统计
       this.updateWordCount();
       // 应用页边距
@@ -9635,8 +9638,56 @@ img { max-width: 100%; height: auto; }
     this._execCmdWithSelection(cmd, value);
   },
 
+  // 保存编辑器内当前选区。富文本工具栏、菜单和弹窗都复用这一份选区，
+  // 避免点击控件后浏览器丢失文本选中状态。
+  _saveEditorSelection() {
+    const editor = document.getElementById('editorContent');
+    const sel = window.getSelection();
+    if (!editor || !sel || !sel.rangeCount) return false;
+    const range = sel.getRangeAt(0);
+    const node = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+      ? range.commonAncestorContainer.parentNode
+      : range.commonAncestorContainer;
+    if (!node || !editor.contains(node)) return false;
+    this._editorSelectionRange = range.cloneRange();
+    return true;
+  },
+
+  _restoreEditorSelection() {
+    const editor = document.getElementById('editorContent');
+    const range = this._editorSelectionRange;
+    if (!editor || !range) return false;
+    const node = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+      ? range.commonAncestorContainer.parentNode
+      : range.commonAncestorContainer;
+    if (!node || !editor.contains(node)) return false;
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range.cloneRange());
+    return true;
+  },
+
+  _bindEditorToolbarSelection(editor) {
+    const toolbar = document.querySelector('.gdocs-toolbar');
+    if (!toolbar || this._selectionBoundToolbar === toolbar) return;
+    this._selectionBoundToolbar = toolbar;
+    toolbar.addEventListener('mousedown', (event) => {
+      // 下拉选择框必须保留默认交互；其余按钮则阻止获得焦点。
+      if (event.target.closest('select')) return;
+      const button = event.target.closest('button');
+      if (!button) return;
+      this._saveEditorSelection();
+      event.preventDefault();
+    });
+    // 在编辑器操作过程中持续更新选区（键盘、鼠标和触屏选取）。
+    ['keyup', 'mouseup', 'focus', 'input'].forEach(type => {
+      editor.addEventListener(type, () => this._saveEditorSelection());
+    });
+  },
+
   // 执行 execCommand 并恢复选区（工具栏 mousedown 会导致选区丢失）
   _execCmdWithSelection(cmd, value) {
+    this._saveEditorSelection();
     // 保存当前选区
     const sel = window.getSelection();
     const savedRanges = [];
@@ -9647,7 +9698,7 @@ img { max-width: 100%; height: auto; }
     const editor = document.getElementById('editorContent');
     if (editor) editor.focus();
     // 恢复选区
-    if (savedRanges.length > 0) {
+    if (!this._restoreEditorSelection() && savedRanges.length > 0) {
       sel.removeAllRanges();
       savedRanges.forEach(r => sel.addRange(r));
     }
@@ -9666,6 +9717,7 @@ img { max-width: 100%; height: auto; }
     }
     const editor = document.getElementById('editorContent');
     if (!editor) return;
+    this._restoreEditorSelection();
     editor.focus();
     // 插入内容 + 一个空段落（便于后续继续编辑）
     const fullHtml = html + '<p><br></p>';
@@ -9678,6 +9730,7 @@ img { max-width: 100%; height: auto; }
   insertHTMLAtCursor(html) {
     const editor = document.getElementById('editorContent');
     if (!editor) return;
+    this._restoreEditorSelection();
     editor.focus();
 
     // 用 Range.insertNode 直接插入，比 execCommand('insertHTML') 更可控
