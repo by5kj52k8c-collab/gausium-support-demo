@@ -8869,10 +8869,17 @@ img { max-width: 100%; height: auto; }
       <!-- 文档属性侧边面板（默认隐藏，菜单里"文件 > 文档属性"打开） -->
       <div class="gdocs-properties-panel" id="gdocsPropertiesPanel" style="display:none;">
         <div class="gdocs-panel-header">
-          <span>文档属性</span>
+          <div class="gdocs-panel-title-group">
+            <span class="gdocs-panel-kicker">DOCUMENT SETTINGS</span>
+            <span>文档属性</span>
+          </div>
           <button class="gdocs-icon-btn" onclick="App.toggleDocProperties()" title="关闭文档属性">✕</button>
         </div>
         <div class="gdocs-panel-body">
+          <div class="gdocs-property-summary">
+            <span class="gdocs-property-chip">${doc.status === 'published' ? '已发布' : doc.status === 'review' ? '审核中' : doc.status === 'developing' ? '开发中' : doc.status === 'planning' ? '规划中' : '草稿'}</span>
+            <span class="gdocs-property-id">ID · ${doc.id}</span>
+          </div>
           <div class="gdocs-panel-field">
             <label>文档标题</label>
             <input type="text" id="editDocTitle" value="${this.tr(doc.title)}">
@@ -8951,6 +8958,10 @@ img { max-width: 100%; height: auto; }
             <textarea id="editDocParts" rows="4" placeholder="机械密封组件&#10;O型密封圈&#10;...">${(doc.parts || []).join('\n')}</textarea>
           </div>
         </div>
+        <div class="gdocs-panel-footer">
+          <button class="gdocs-panel-cancel" onclick="App.toggleDocProperties()">关闭</button>
+          <button class="gdocs-panel-save" onclick="App.saveDoc()">保存属性</button>
+        </div>
       </div>
     `;
 
@@ -8994,6 +9005,13 @@ img { max-width: 100%; height: auto; }
       editor.addEventListener('scroll', () => this.updateEditorPageIndicator());
       // 初始化页码指示
       setTimeout(() => this.updateEditorPageIndicator(), 200);
+
+      // 属性栏字段与文档管理页使用同一份数据；编辑时只标记为未保存，
+      // 由“保存属性”或顶部保存按钮统一写入，避免输入过程中误提交。
+      document.querySelectorAll('#gdocsPropertiesPanel input, #gdocsPropertiesPanel select, #gdocsPropertiesPanel textarea').forEach(field => {
+        field.addEventListener('input', () => this.setSaveStatusUI('unsaved'));
+        field.addEventListener('change', () => this.setSaveStatusUI('unsaved'));
+      });
 
       // 键盘快捷键
       editor.addEventListener('keydown', (e) => {
